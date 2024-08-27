@@ -7,6 +7,7 @@ import warnings
 from pylatexenc.latexencode import unicode_to_latex
 import fitz
 
+
 latex_regexes = [
 	('\'',   re.compile(r'{\\textquoteright}')),
 	('`',    re.compile(r'{\\textquoteleft}')),
@@ -64,13 +65,6 @@ def open_texfile(texfile, texfiles):
 	#
 	return texlines
 #
-
-def find_single_match(needle, haystack, warnmsg):
-	i = haystack.find(needle)
-	if haystack.find(needle, i+1) >= 0: warnings.warn('Found multiple occurrences of \'%s\' %s' % (needle, warnmsg))
-	return i
-#
-
 
 # fitz -> coordinate of annot -> synctex -> file & line     BUT   where to put in that line?
 # could do: fitz -> coordinate of annot -> words intersecting
