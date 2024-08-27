@@ -1,8 +1,34 @@
+# Annot2Tex
+
+Extract annotations from PDF and add them into the LaTex code.
+
+Shoutout to
+
+- Jorj X. McKie (@JorjMcKie) and the devs of `pymupdf`
+- Philippe Faist (@phfaist) and the devs of `pylatexenc`
+- Josef Kleber for developing `pdfcomment.sty`
+- Ulrike Fischer (@u-fischer) for providing solutions to some problems `pdfcomment.sty` has [here](https://tex.stackexchange.com/a/694614)
+- ThV for doing the same [here](https://tex.stackexchange.com/a/408976)
+
+Big thanks that you put in the hard work!
 
 
-thank fitz guys
 
-https://tex.stackexchange.com/a/694614
+## Installation
 
-https://tex.stackexchange.com/a/408976 (comment https://tex.stackexchange.com/questions/132973/pdfmarkupcomment-does-not-highlight-what-it-is-supposed-to#comment1020529_408976)
+```
+git clone https://github.com/felixhorger/Annot2Tex.git
+cd Annot2Tex
+make install
+```
+
+## Usage
+
+Run
+
+
+```annot2tex```
+
+
+everything should be in the help. More details coming at some point.
 
