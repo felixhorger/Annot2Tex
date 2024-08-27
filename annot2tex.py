@@ -204,11 +204,12 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 				print(idx, "\n\n")
 
 
-				annot_tex = '\pdfmarkupcomment[id=%d,markup=%s,avatar={%s},date={%s},subject=1]{' % (
+				annot_tex = '\pdfmarkupcomment[id=%d,markup=%s,avatar={%s},date={%s},subject={ANNOT2TEX%s}]{' % (
 					annot.xref,
 					markup_types[annot.type[0]],
 					authordict.get(annot.info['title'], 'ChuckNorris'),
-					annot.info['modDate']
+					annot.info['modDate'],
+					annot.info['id']
 				)
 
 				for texfile, j in idx.items():
