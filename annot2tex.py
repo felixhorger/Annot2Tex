@@ -26,19 +26,6 @@ def unicode2latex(s):
 	return s
 #
 
-def get_highlighted_text(annot):
-	num_lines = len(annot.vertices) // 4
-	words = annot.parent.get_text('words')
-	highlighted_lines = []
-	for l in range(num_lines):
-		v = 4 * l
-		rect = fitz.Rect(annot.vertices[v][0], annot.vertices[v][1], annot.vertices[v+3][0], annot.vertices[v+3][1]) # This causes comma to be included if adjacent...
-		highlighted_lines.append(' '.join(w[4] for w in words if fitz.Rect(w[:4]).intersects(rect)))
-	#
-	return highlighted_lines
-#
-
-
 regex_synctex_file = re.compile('Input:(.*)')
 regex_synctex_line = re.compile('Line:([0-9]*)')
 def run_synctex(pageno, x, y, synctexfilename, synctexdir):
@@ -66,12 +53,26 @@ def open_texfile(texfile, texfiles):
 	return texlines
 #
 
+
+def get_highlighted_text(annot):
+	num_lines = len(annot.vertices) // 4
+	words = annot.parent.get_text('words')
+	highlighted_lines = []
+	for l in range(num_lines):
+		v = 4 * l
+		rect = fitz.Rect(annot.vertices[v][0], annot.vertices[v][1], annot.vertices[v+3][0], annot.vertices[v+3][1]) # This causes comma to be included if adjacent...
+		highlighted_lines.append(' '.join(w[4] for w in words if fitz.Rect(w[:4]).intersects(rect)))
+	#
+	return highlighted_lines
+#
+
 markup_types = {
 	fitz.PDF_ANNOT_HIGHLIGHT: 'Highlight',
 	fitz.PDF_ANNOT_STRIKE_OUT: 'StrikeOut',
 	fitz.PDF_ANNOT_UNDERLINE: 'Underline',
 	fitz.PDF_ANNOT_SQUIGGLY: 'Squiggly'
 }
+
 
 def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 
