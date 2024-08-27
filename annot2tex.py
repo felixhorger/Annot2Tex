@@ -27,8 +27,8 @@ def unicode2latex(s):
 #
 
 regex_synctex_file = re.compile('Input:(.*)')
-regex_synctex_line = re.compile('Line:([0-9]*)')
-def run_synctex(pageno, x, y, synctexfilename, synctexdir):
+regex_synctex_line = re.compile('Line:([0-9]+)')
+def texpos(pageno, x, y, synctexfilename, synctexdir):
 	cmd = ['synctex', 'edit', '-o', '%d:%.2f:%.2f:%s' % (1+pageno, x, y, synctexfilename), '-d', synctexdir]
 	#print(' '.join(cmd)) # TODO: use logging
 	p = subprocess.run(cmd, stdout=subprocess.PIPE)
@@ -41,6 +41,38 @@ def run_synctex(pageno, x, y, synctexfilename, synctexdir):
 	lineno = int(m.group(1)) # One based
 	return texfile, lineno
 #
+
+# Works so lala, not because of me, just gives bounding box ... :(
+#regex_synctex_page = re.compile('Page:([0-9]+)')
+#regex_synctex_x = re.compile('x:([0-9.]+)')
+#regex_synctex_y = re.compile('y:([0-9.]+)')
+#regex_synctex_vertical = re.compile('v:([0-9.]+)')
+#regex_synctex_horizontal = re.compile('h:([0-9.]+)')
+#regex_synctex_height = re.compile('H:([0-9.]+)')
+#def pdfpos(lineno, col, texfile, synctexfilename, synctexdir):
+#	# TODO: for some reason it doesn't eat the page number (which I could know here ...), does work anyways
+#	cmd = ['synctex', 'view', '-i', '%d:%d:%s' % (lineno, col, texfile), '-o', synctexfilename, '-d', synctexdir]
+#	#print(' '.join(cmd)) # TODO: use logging
+#	p = subprocess.run(cmd, stdout=subprocess.PIPE)
+#	synctexout = p.stdout.decode()
+#	print(synctexout)
+#	# Parse output
+#	# TODO: could do this better? Maybe go through lines and match list of regexes in large if block
+#	m = re.search(regex_synctex_page, synctexout)
+#	page = m.group(1) # One based
+#	m = re.search(regex_synctex_x, synctexout)
+#	x = float(m.group(1))
+#	m = re.search(regex_synctex_y, synctexout)
+#	y = float(m.group(1))
+#	m = re.search(regex_synctex_height, synctexout)
+#	H = float(m.group(1))
+#	m = re.search(regex_synctex_vertical, synctexout)
+#	v = float(m.group(1))
+#	m = re.search(regex_synctex_horizontal, synctexout)
+#	h = float(m.group(1))
+#	return page, x, y#-0.5*H
+##
+
 
 def open_texfile(texfile, texfiles):
 	if texfile in texfiles: texlines = texfiles[texfile]
