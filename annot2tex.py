@@ -87,12 +87,13 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 
 	for page in doc:
 		for annot in page.annots():
-			if annot.info['subject'] == '1': continue
+			if annot.info['subject'][:9] == 'ANNOT2TEX': continue
 			# Adobe adds an id, but pdfcomment.sty doesn't (grumble mumble...),
 			# misusing subject to remember which have been synced already
 
-			# TODO copy date
-
+			#
+			# ---------- COMMENT BOX ANNOTATIONS ----------
+			#
 			if annot.type[0] == fitz.PDF_ANNOT_TEXT:
 				# Find file and line using synctex
 				# Get coordinates of annotation
@@ -106,18 +107,20 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 				if annot.irt_xref == 0: annot_tex += '\pdfcomment[hoffset=2cm,' # TODO: make these options accessible
 				else:                   annot_tex += '\pdfreply[hoffset=2cm,replyto=%d,' % annot.irt_xref
 				# Add info
-				annot_tex += 'id=%d,avatar={%s},date={%s},subject=1]{%s}}\hskip-\lastskip\n' % (
+				annot_tex += 'id=%d,avatar={%s},date={%s},subject={ANNOT2TEX%s}]{%s}}\hskip-\lastskip\n' % (
 					annot.xref,
 					authordict.get(annot.info['title'], 'ChuckNorris'),
 					annot.info['modDate'],
+					annot.info['id'],
 					annot.info['content']
 				)
-				#print(annot_tex)
 				# Adjust line
 				if lineno == 0: lineno = 1
 				texlines[lineno-1] += annot_tex
 			#
-			elif annot.type[0] in markup_types: # Highlight annotations (marked text)
+			# ---------- HIGHLIGHT ANNOTATIONS ----------
+			#
+			elif annot.type[0] in markup_types:
 
 				highlighted_pdflines = get_highlighted_text(annot)
 				# Problem is that this gives lines in PDF but need lines in Tex
