@@ -173,7 +173,7 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 							if len(texline)-1 == i:
 								i = 0
 								while len(texline) <= 1:
-									texlines[lineno] = '\\\indent\n'
+									texlines[lineno] = '\\\\\\indent\n'
 									lineno += 1
 									texline = texlines[lineno]
 									# TODO: could overflow index
