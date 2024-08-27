@@ -125,23 +125,29 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 				highlighted_pdflines = get_highlighted_text(annot)
 				# Problem is that this gives lines in PDF but need lines in Tex
 
-				# Construct lines in Tex
-				highlighted_texlines = {}
+				# Reconstruct the latex code corresponding to the highlighted text
+				# This is required because the line breaks in LaTex/PDF are different and e.g. hyphens can be introduced in PDF
+				highlighted_texlines = {} # Key = texfile-path, value = [first line number the markup started, reconstructed latex code of marked text]
 				had_hyphen = False
 				for l in range(0, len(highlighted_pdflines)):
-					x = 0.5 * (annot.vertices[4*l][0] + annot.vertices[4*l+3][0]) # Take vertex at the bottom of the first marked line
+					# Get tex file and line number of this PDF line and remember it
+					x = 0.5 * (annot.vertices[4*l][0] + annot.vertices[4*l+3][0]) # Centre of the marked area
 					y = 0.5 * (annot.vertices[4*l][1] + annot.vertices[4*l+3][1])
 					texfile, lineno = run_synctex(page.number, x, y, synctexfilename, synctexdir)
-					highlighted = unicode2latex(highlighted_pdflines[l])
 					if texfile not in highlighted_texlines:
-						had_hyphen = True
+						had_hyphen = True # Need to set this flag at the beginning of a new file otherwise space is added
 						highlighted_texlines[texfile] = [lineno, ""]
+						open_texfile(texfile, texfiles)
 					#
-					open_texfile(texfile, texfiles)
+					# Get highlighted text in PDF and add to existing texline, remove hyphen/add space if required
+					highlighted = unicode2latex(highlighted_pdflines[l])
 					if not had_hyphen: highlighted = " " + highlighted
-					highlighted_texlines[texfile][1] += highlighted
 					had_hyphen = False
-					if highlighted[-1] == "-": had_hyphen = True
+					if highlighted[-1] == "-":
+						highlighted = highlighted[:-1]
+						had_hyphen = True
+					#
+					highlighted_texlines[texfile][1] += highlighted
 				#
 
 
