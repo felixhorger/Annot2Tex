@@ -114,6 +114,19 @@ markup_types = {
 }
 
 
+# Removes LaTex comments
+def cut_tex_comment(texline):
+	c = texline.find('%')
+	if c != -1: texline = texline[:c]
+	return texline
+#
+
+def first_non_whitespace(texline):
+	m = re.search('\S', texline)
+	if m is None: return -1
+	else:         return m.start()
+#
+
 def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 
 	doc = fitz.open(pdfpath) # This file can be anywhere, hence read that first according to the user's input
