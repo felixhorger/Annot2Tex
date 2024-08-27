@@ -3,7 +3,6 @@ import shutil
 import subprocess
 import re
 import argparse
-import warnings
 from pylatexenc.latexencode import unicode_to_latex
 import fitz
 
@@ -152,7 +151,7 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 				# Get coordinates of annotation
 				x = 0.5 * (annot.rect.x0 + annot.rect.x1)
 				y = 0.5 * (annot.rect.y0 + annot.rect.y1)
-				texfile, lineno = run_synctex(page.number, x, y, synctexfilename, synctexdir)
+				texfile, lineno = texpos(page.number, x, y, synctexfilename, synctexdir)
 				texlines = open_texfile(texfile, texfiles)
 
 				# Is it a reply?
@@ -182,11 +181,11 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 				# This is required because the line breaks in LaTex/PDF are different and e.g. hyphens can be introduced in PDF
 				highlighted_texlines = {} # Key = texfile-path, value = [first line number the markup started, reconstructed latex code of marked text]
 				had_hyphen = False
-				for l in range(0, len(highlighted_pdflines)):
+				for l in range(len(highlighted_pdflines)):
 					# Get tex file and line number of this PDF line and remember it
 					x = 0.5 * (annot.vertices[4*l][0] + annot.vertices[4*l+3][0]) # Centre of the marked area
 					y = 0.5 * (annot.vertices[4*l][1] + annot.vertices[4*l+3][1])
-					texfile, lineno = run_synctex(page.number, x, y, synctexfilename, synctexdir)
+					texfile, lineno = texpos(page.number, x, y, synctexfilename, synctexdir)
 					if texfile not in highlighted_texlines:
 						had_hyphen = True # Need to set this flag at the beginning of a new file otherwise space is added
 						highlighted_texlines[texfile] = [lineno, ""]
@@ -204,65 +203,94 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 				#
 
 
-				# Iterate over files, add one \pdfmarkupcomment in each
+				# Iterate over LaTex files, add one \pdfmarkupcomment in each
 				idx = {}
 				for (texfile, (lineno, highlighted)) in highlighted_texlines.items():
 
 					lineno -= 1
-					highlighted = highlighted.split()
+					highlighted = highlighted.split() # Into words
 					texlines = texfiles[texfile]
 
-					# Find the start
-					w = 0
-					i = 0
+					# Find the start of the marked text in the code
+					# Do this by searching for 1,2,3,... words until it doesn't match anymore, which means we reached the end of the line
+					# This seems overly complicated but ensures we get the biggest match of words, which is likely the correct one
+					texline = cut_tex_comment(texlines[lineno]).rstrip()
+					i = first_non_whitespace(texline)
 					j = 0
-					texline = texlines[lineno]
-					words = ""
+					words = highlighted[0]
+					w = 1
 					while j > -1 and w < len(highlighted):
-						words = " ".join(highlighted[v] for v in range(w+1))
+						words = ' '.join((words, highlighted[w]))
 						i = j
 						j = texline.find(words) # Need to use find here because word combinations matter
 						w += 1
 					#
-					if j == -1: w -= 1 # Could not find word or ...
-					else:       i = j  # .. no further words available in loop above
+					if j == -1: # Could not find word in this texline or ... (see else further down below)
+						w -= 1 # This word is still to be found
+						# Are there other matches? If there are, need to pick the last since there is a linebreak (there are left-over words)
+						words = words.rsplit(' ', 1)[0] # Remove last word which didn't produce a match
+						# Go through all the matches of words, pick last one
+						j = texline.find(words, i+1)
+						while j > -1:
+							i = j
+							j = texline.find(words, i+1)
+						#
+					#
+					else: # (connects to if further up) ... no further words available in highlighted
+						i = j
+						j = texline.find(words, i+1)
+						if j > -1: print('Warning: found more than one match for markup "%s" in %s:%d, using first match' % (words, texfile, lineno+1))
+					#
 					idx[texfile] = [lineno, i, -1, -1]
 
 					# Find stop
-					# if not all words have been found and ???
-					if w < len(highlighted): #and len(texline)-1 == i - 1 + sum(len(word)+1 for word in highlighted[:w]):
-						i = 0
+					if w < len(highlighted): # if not all words have been found need to go to next line(s) in tex code or ... (see else further down below)
 						lineno += 1
 						texline = texlines[lineno]
-						c = texline.find('%') # TODO function see above
-						if c != -1: texline = texline[:c]
+						i = first_non_whitespace(texline)
+						texline = cut_tex_comment(texline).rstrip()
+						# Search for individual words until all have been found
 						while w < len(highlighted):
-							if len(texline)-1 == i:
-								i = 0
-								while len(texline) <= 1:
-									texlines[lineno] = '\\\\\\indent\n'
-									lineno += 1
+							# Is end of texline? (and need to get next)
+							if len(texline) == i+1:
+								# Find new non-empty line
+								while True:
+									lineno += 1 # TODO: could overflow index?
 									texline = texlines[lineno]
-									# TODO: could overflow index
+									i = first_non_whitespace(texline)
+									texline = texline.rstrip()
+									if len(texline) == i+1:
+										# Empty line, new paragraph
+										# Paragraphs don't work in \pdfcomment, need to replace with this
+										texlines[lineno] = '\\\\\\indent\n'
+										continue # Next line
+									else:
+										# Non-empty line but might be empty after removing comments
+										texline = cut_tex_comment(texline).rstrip()
+										if len(texline) > i: break # Actual text is there before the comment
+										# Just the commment in that line, keep it as is
+									#
 								#
-								texline = texlines[lineno]
-								c = texline.find('%') # TODO function see above
-								if c != -1: texline = texline[:c]
 							#
+							# Next word
 							word = highlighted[w]
-							if texline[i:i+len(word)] != word: warnings.warn('Word not matching \"%s\" (%s, %d)' % (word, texfile, lineno+1))
-							i += len(word)+1
-							w += 1
+							# Is next word also next word in texline?
+							if texline[i:i+len(word)] != word: print('Warning: word in markup \"%s\" not matching in %s:%d' % (word, texfile, lineno+1))
+							i += len(word)+1 # Advance column index (+1 for space)
+							w += 1 # Next word
 						#
-						i -= 1
+						# All words found
+						# i is now the location where the finalising braces of the pdfmarkupcomment go
+						i -= 1 # for space of last word
 					#
-					else: i += len(words)
+					else: i += len(words) # (see if further up) ... or all words have been found, then just advance by their length
 					idx[texfile][2] = lineno
 					idx[texfile][3] = i
 				#
-				print(idx, "\n\n")
+				#print(idx, "\n\n")
 
 
+				# Fill information into tex command for comment
 				annot_tex = '\pdfmarkupcomment[id=%d,markup=%s,avatar={%s},date={%s},subject={ANNOT2TEX%s}]{' % (
 					annot.xref,
 					markup_types[annot.type[0]],
@@ -271,13 +299,14 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 					annot.info['id']
 				)
 
+				# In each involved tex file, insert the command
 				for texfile, j in idx.items():
 					texlines = texfiles[texfile]
 					# Start
 					lineno = j[0]
 					i = j[1]
 					texlines[lineno] = texlines[lineno][:i] + annot_tex + texlines[lineno][i:]
-					print(texlines[lineno])
+					#print(texlines[lineno])
 					# Stop
 					new_lineno = j[2]
 					i = j[3] + (len(annot_tex) if new_lineno == lineno else 0)
@@ -295,8 +324,10 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 	# Backup originals and write changes
 	for texfile, texlines in texfiles.items():
 		backup = texfile + '.bak'
-		for l in texlines:
-			print(l, end="")
+		# Debug output
+		#for l in texlines:
+		#	print(l, end="")
+		##
 		if os.path.exists(backup): raise Exception('Backup file exists, please clean that up first')
 		shutil.copyfile(texfile, backup)
 		f = open(texfile, 'w')
