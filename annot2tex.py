@@ -90,12 +90,20 @@ def get_highlighted_text(annot):
 	num_lines = len(annot.vertices) // 4
 	words = annot.parent.get_text('words')
 	highlighted_lines = []
+	#full_lines = []
 	for l in range(num_lines):
 		v = 4 * l
+		# Extract marked text
 		rect = fitz.Rect(annot.vertices[v][0], annot.vertices[v][1], annot.vertices[v+3][0], annot.vertices[v+3][1]) # This causes comma to be included if adjacent...
 		highlighted_lines.append(' '.join(w[4] for w in words if fitz.Rect(w[:4]).intersects(rect)))
+		# Extract full line (required if multiple similar words are in that texline)
+		#rect = fitz.Rect(page.rect.x0, annot.vertices[v][1], page.rect.x1, annot.vertices[v+3][1])
+		#for w in words:
+		#	word_rect = fitz.Rect(w[:4])
+		#	if word_rect.intersects(rect): full_lines.append(word_rect)
+		##
 	#
-	return highlighted_lines
+	return highlighted_lines #, full_lines
 #
 
 markup_types = {
