@@ -4,9 +4,26 @@ import subprocess
 import re
 import argparse
 import warnings
-from unicode2latex import unicode2latex
+from pylatexenc.latexencode import unicode_to_latex
 import fitz
 
+latex_regexes = [
+	('\'',   re.compile(r'{\\textquoteright}')),
+	('`',    re.compile(r'{\\textquoteleft}')),
+	('\'\'', re.compile(r'{\\textquotedblright}')),
+	('``',   re.compile(r'{\\textquotedblleft}')),
+	(r'\1',  re.compile(r'{([\\a-zA-Z]+)}'))
+]
+def unicode2latex(s):
+	s = unicode_to_latex(
+		s,
+		non_ascii_only=True,
+		replacement_latex_protection='braces-all',
+		unknown_char_warning=True
+	)
+	for (sub, regex) in latex_regexes: s = regex.sub(sub, s)
+	return s
+#
 
 def get_highlighted_text(annot):
 	num_lines = len(annot.vertices) // 4
