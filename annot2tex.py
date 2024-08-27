@@ -5,6 +5,7 @@ import re
 import argparse
 from pylatexenc.latexencode import unicode_to_latex
 import fitz
+import yaml
 
 
 latex_regexes = [
@@ -161,7 +162,7 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 				# Add info
 				annot_tex += 'id=%d,avatar={%s},date={%s},subject={ANNOT2TEX%s}]{%s}}\hskip-\lastskip\n' % (
 					annot.xref,
-					authordict.get(annot.info['title'], 'ChuckNorris'),
+					authordict.get(annot.info['title'], annot.info['title']) if len(annot.info['title']) > 0 else 'Unknown',
 					annot.info['modDate'],
 					annot.info['id'],
 					annot.info['content']
@@ -287,14 +288,15 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 					idx[texfile][2] = lineno
 					idx[texfile][3] = i
 				#
-				#print(idx, "\n\n")
+				#print(idx, '\n\n')
 
 
 				# Fill information into tex command for comment
+
 				annot_tex = '\pdfmarkupcomment[id=%d,markup=%s,avatar={%s},date={%s},subject={ANNOT2TEX%s}]{' % (
 					annot.xref,
 					markup_types[annot.type[0]],
-					authordict.get(annot.info['title'], 'ChuckNorris'),
+					authordict.get(annot.info['title'], annot.info['title']) if len(annot.info['title']) > 0 else 'Unknown',
 					annot.info['modDate'],
 					annot.info['id']
 				)
@@ -336,6 +338,7 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 	#
 
 	# TODO: check y coordinates of annots generated (and page), make this possible by adding an option alike -cmd='make main.pdf' and then analyse new pdf
+	# TODO: there is a status in adobe: Accepted, Cancelled, Completed, etc
 
 	return
 #
@@ -357,7 +360,12 @@ parser.add_argument('-b', '--buildcmd', help='command to build the PDF, which ca
 parser.add_argument('-a', '--authordict', help='YAML file containing a dictionary translating author names to pdfcomment.sty avatar names as defined in the tex project')
 args = parser.parse_args()
 
-# TODO: parse YAML authors
+if args.authordict is not None:
+	with open(args.authordict, 'r') as f:
+		authordict = yaml.safe_load(f)
+	#
+#
+else: authordict = {}
 
-annot2tex(args.pdf, args.synctex, args.root, args.buildcmd, {})
+annot2tex(args.pdf, args.synctex, args.root, args.buildcmd, authordict)
 
