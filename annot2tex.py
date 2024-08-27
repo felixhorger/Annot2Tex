@@ -66,13 +66,6 @@ def open_texfile(texfile, texfiles):
 	return texlines
 #
 
-# fitz -> coordinate of annot -> synctex -> file & line     BUT   where to put in that line?
-# could do: fitz -> coordinate of annot -> words intersecting
-# but better is to use margin comment
-#TODO: highlight comments (how to differentiate highlight, strikethourgh...?)
-#TODO: insert comments
-#that should be enough, but could test scribbles, 
-
 markup_types = {
 	fitz.PDF_ANNOT_HIGHLIGHT: 'Highlight',
 	fitz.PDF_ANNOT_STRIKE_OUT: 'StrikeOut',
