@@ -337,15 +337,14 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 		f.close()
 	#
 
-	# TODO: check y coordinates of annots generated (and page), make this possible by adding an option alike -cmd='make main.pdf' and then analyse new pdf
+	# TODO: check y coordinates of annots generated (and page), make this possible by adding build cmd below for argparse
 	# TODO: there is a status in adobe: Accepted, Cancelled, Completed, etc
 
 	return
 #
 
 
-
-
+# ---------- RUN ----------
 
 parser = argparse.ArgumentParser(
 	prog='Sync into Tex',
@@ -360,12 +359,14 @@ parser.add_argument('-b', '--buildcmd', help='command to build the PDF, which ca
 parser.add_argument('-a', '--authordict', help='YAML file containing a dictionary translating author names to pdfcomment.sty avatar names as defined in the tex project')
 args = parser.parse_args()
 
+# Get translation of authors
 if args.authordict is not None:
 	with open(args.authordict, 'r') as f:
 		authordict = yaml.safe_load(f)
 	#
 #
 else: authordict = {}
+
 
 annot2tex(args.pdf, args.synctex, args.root, args.buildcmd, authordict)
 
