@@ -188,14 +188,14 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 					texfile, lineno = texpos(page.number, x, y, synctexfilename, synctexdir)
 					if texfile not in highlighted_texlines:
 						had_hyphen = True # Need to set this flag at the beginning of a new file otherwise space is added
-						highlighted_texlines[texfile] = [lineno, ""]
+						highlighted_texlines[texfile] = [lineno, '']
 						open_texfile(texfile, texfiles)
 					#
 					# Get highlighted text in PDF and add to existing texline, remove hyphen/add space if required
 					highlighted = unicode2latex(highlighted_pdflines[l])
-					if not had_hyphen: highlighted = " " + highlighted
+					if not had_hyphen: highlighted = ' ' + highlighted
 					had_hyphen = False
-					if highlighted[-1] == "-":
+					if highlighted[-1] == '-':
 						highlighted = highlighted[:-1]
 						had_hyphen = True
 					#
@@ -275,7 +275,7 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 							# Next word
 							word = highlighted[w]
 							# Is next word also next word in texline?
-							if texline[i:i+len(word)] != word: print('Warning: word in markup \"%s\" not matching in %s:%d' % (word, texfile, lineno+1))
+							if texline[i:i+len(word)] != word: print('Warning: word in markup "%s" not matching in %s:%d' % (word, texfile, lineno+1))
 							i += len(word)+1 # Advance column index (+1 for space)
 							w += 1 # Next word
 						#
@@ -326,7 +326,7 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 		backup = texfile + '.bak'
 		# Debug output
 		#for l in texlines:
-		#	print(l, end="")
+		#	print(l, end='')
 		##
 		if os.path.exists(backup): raise Exception('Backup file exists, please clean that up first')
 		shutil.copyfile(texfile, backup)
