@@ -77,14 +77,14 @@ Currently simple comment boxes and markup comments are supported as well as repl
 ### Before you start
 
 > [!CAUTION]
-> **I'm not responsible for any lost data**
+> **I'm not responsible for any lost data**.
 > This tool is in development and testing is restricted to my own use cases.
 > What I recommend is that you track your LaTex files with git, commiting and pushing all changes _before_ running `annot2tex`.
 > On top of that, to minimise risk, `annot2tex` automatically copies files before changes are applied (stored as `*.bak`).
 > If you try to run `annot2tex` while these backup files are still around, it won't apply changes and throw an exception asking you to remove them
 > to acknowledge the Tex code is in a consistent state.
 > So, should you be worried or refrain from using `annot2tex`? No.
-> But be alert, and make use of `git diff` to make sure that `annot2tex` did what it was supposed to.
+> But be alert, and make use of `git diff` to ensure that `annot2tex` did what it was supposed to.
 
 ### Run
 
