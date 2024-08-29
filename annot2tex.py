@@ -347,15 +347,15 @@ def annot2tex(pdfpath, synctexpath, root, buildcmd, authordict):
 # ---------- RUN ----------
 
 parser = argparse.ArgumentParser(
-	prog='Sync into Tex',
-	description='Extracts annotations from a PDF and places them at the correct location in that PDF\'s LaTex code'
+	prog='annot2tex',
+	description='Transfer PDF annotations into LaTex code'
 )
 
 # Need: pdf, directory containing tex and synctex files
-parser.add_argument('pdf', help='Path to PDF file containing annotations')
-parser.add_argument('synctex', help='Path to the synctex file')
-parser.add_argument('root', help='Root path of the LaTex project of that PDF')
-parser.add_argument('-b', '--buildcmd', help='command to build the PDF, which can be used to check the synchronised comments')
+parser.add_argument('PDF', help='Path to PDF file containing annotations')
+parser.add_argument('SYNCTEX', help='Path to the synctex file')
+parser.add_argument('ROOT', help='Root path of the LaTex project of that PDF')
+parser.add_argument('-b', '--buildcmd', help='Not implemented: command to build the PDF, which can be used to check the synchronised comments')
 parser.add_argument('-a', '--authordict', help='YAML file containing a dictionary translating author names to pdfcomment.sty avatar names as defined in the tex project')
 args = parser.parse_args()
 
@@ -368,5 +368,5 @@ if args.authordict is not None:
 else: authordict = {}
 
 
-annot2tex(args.pdf, args.synctex, args.root, args.buildcmd, authordict)
+annot2tex(args.PDF, args.SYNCTEX, args.ROOT, args.buildcmd, authordict)
 
