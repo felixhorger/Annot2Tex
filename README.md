@@ -25,12 +25,15 @@ Big thanks that your work and help made this possible!
 
 ## Installation
 
-### Required packages
+### Requirements
+I used `python3` version `3.9.2` and the following packages
 ```
 pylatexenc==2.10
 PyMuPDF==1.24.9
 PyYAML==5.3.1
 ```
+but I'm sure it does work too if you don't have these exact versions.
+
 
 ### Annot2Tex
 ```
